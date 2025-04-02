@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('amount');
-            $table->enum('status',['paid','failed','canceled','reversed','pending','blocked','under_review'])->nullable();
+            $table->enum('status',['send_to_bank','paid','failed','canceled','reversed','pending','blocked','under_review'])->default('send_to_bank');
             $table->string('gateway_name')->nullable();
             $table->unsignedSmallInteger('response_code')->nullable();
+            $table->unsignedSmallInteger('order_id')->nullable()->unique();
+            $table->unsignedSmallInteger('transaction_code')->nullable()->unique();
             $table->string('description')->nullable();
             $table->unsignedInteger('creator_id');
             $table->timestamps();

@@ -7,19 +7,15 @@ use Illuminate\Support\Collection;
 
 class LogRepository implements ILogRepository
 {
+    private $mySqlLogRepository;
 
-    public function getOneById(int $id): null|Log
+    public function __construct(MySqlLogRepository $mySqlLogRepository)
     {
-        // TODO: Implement getOneById() method.
+        $this->mySqlLogRepository = $mySqlLogRepository;
     }
 
-    public function getAllByIds(array $ids): Collection
+    public function insert(array $logs)
     {
-        // TODO: Implement getAllByIds() method.
-    }
-
-    public function create(Log $log): Log
-    {
-        // TODO: Implement create() method.
+        $this->mySqlLogRepository->insert($logs);
     }
 }

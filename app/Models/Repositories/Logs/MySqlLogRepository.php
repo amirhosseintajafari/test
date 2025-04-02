@@ -7,19 +7,8 @@ use Illuminate\Support\Collection;
 
 class MySqlLogRepository implements ILogRepository
 {
-
-    public function getOneById(int $id): null|Log
+    public function insert(array $logs)
     {
-        // TODO: Implement getOneById() method.
-    }
-
-    public function getAllByIds(array $ids): Collection
-    {
-        // TODO: Implement getAllByIds() method.
-    }
-
-    public function create(Log $log): Log
-    {
-        // TODO: Implement create() method.
+        Log::query()->insert($logs);
     }
 }

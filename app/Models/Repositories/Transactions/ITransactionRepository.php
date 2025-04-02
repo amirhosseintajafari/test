@@ -7,9 +7,5 @@ use Illuminate\Support\Collection;
 
 interface ITransactionRepository
 {
-    public function getOneById(int $id): null|Transaction;
-
-    public function getAllByIds(array $ids): Collection;
-
-    public function create(Transaction $transaction): Transaction;
+     public function create(Transaction $transaction): Transaction;
 }

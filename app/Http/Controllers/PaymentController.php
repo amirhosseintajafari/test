@@ -2,45 +2,85 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Entities\Log;
-use App\Services\TransactionService;
-use GuzzleHttp\Client;
+use App\Models\Entities\Transaction;
+use App\Services\PaymentGatewayService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class PaymentController extends Controller
 {
-    private Log $logService;
-    private TransactionService $transactionService;
+    protected $paymentGatewayService;
 
-    public function __construct(TransactionService $transactionService, Log $logService)
+    public function __construct(PaymentGatewayService $paymentGatewayService)
     {
-        $this->logService = $logService;
-        $this->transactionService = $transactionService;
+        $this->paymentGatewayService = $paymentGatewayService;
     }
 
-    public function getPaymentServiceToken()
+    public function handlePayment(Request $request)
     {
-//        return
-//            Cache::remember('payment_service_token', 3600, function () {
-            $response = Http::withOptions([
-                'verify' => false, // غیرفعال کردن بررسی SSL
-            ])->asForm()->post('http://test.local/oauth/token', [
-                'grant_type'    => 'client_credentials',
-                'client_id'     => env('PAYMENT_CLIENT_ID'),
-                'client_secret' => env('PAYMENT_CLIENT_SECRET'),
-                'scope'         => '',
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1000', // حداقل ۱۰۰۰ تومان
+            'callback_url' => 'required|url',
+            'order_id' => 'required'
+        ]);
+
+
+        $amount = $request->input('amount');
+        $orderId = $request->input('order_id');
+        $callbackUrl = $request->input('callback_url');
+
+        $transaction = new Transaction();
+        $transaction->amount = $amount;
+        $transaction->order_id = $orderId;
+        $transaction->creator_id = 1;
+
+        $transaction = $this->paymentGatewayService->createTransaction($transaction);
+
+        try {
+            $paymentResult = $this->paymentGatewayService->processPayment($amount, $callbackUrl, $transaction);
+
+            if (filled($paymentResult)) {
+                $transaction->status = 'paid';
+                $transaction->transaction_code = $paymentResult['transaction_code'];
+                $transaction->gateway_name = $paymentResult['gateway_name'];
+                $transaction->response_code = $paymentResult['response_code'];
+                $this->paymentGatewayService->updateTransaction($transaction);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'درخواست پرداخت ارسال شد.',
+                'response_code' => $paymentResult['response_code'],
+                'payment_url' => $paymentResult['redirect_url'],
             ]);
-
-            return $response->json()['access_token'];
-//        });
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        }
     }
 
-    public function payment(Request $request)
-    {
-dd($request->all());
-    }
-
-
+//    public function handleCallback(Request $request)
+//    {
+//        $transactionId = $request->query('transaction_id');
+//        $gateway = $request->query('gateway');
+//        $paymentStatus = $request->query('status');
+//
+//        if (!$transactionId || !$gateway) {
+//            return response()->json(['status' => 'error', 'message' => 'اطلاعات تراکنش نامعتبر است.']);
+//        }
+//
+//        if ($paymentStatus === 'success') {
+//            return response()->json([
+//                'status' => 'success',
+//                'message' => 'پرداخت موفقیت‌آمیز بود.',
+//                'transaction_id' => $transactionId,
+//                'gateway' => $gateway,
+//            ]);
+//        }
+//
+//        return response()->json([
+//            'status' => 'failed',
+//            'message' => 'پرداخت انجام نشد یا ناموفق بود.',
+//            'transaction_id' => $transactionId,
+//            'gateway' => $gateway,
+//        ]);
+//    }
 }

@@ -3,23 +3,23 @@
 namespace App\Models\Repositories\Transactions;
 
 use App\Models\Entities\Transaction;
-use Illuminate\Support\Collection;
 
 class TransactionRepository implements ITransactionRepository
 {
+    private MySqlTransactionRepository $mySqlTransactionRepository;
 
-    public function getOneById(int $id): null|Transaction
+    public function __construct(MySqlTransactionRepository $mySqlTransactionRepository)
     {
-        // TODO: Implement getOneById() method.
+        $this->mySqlTransactionRepository = $mySqlTransactionRepository;
     }
 
-    public function getAllByIds(array $ids): Collection
+    public function create(Transaction $transaction): Transaction
     {
-        // TODO: Implement getAllByIds() method.
+        return $this->mySqlTransactionRepository->create($transaction);
     }
 
-    public function create(Transaction $applicant): Transaction
+    public function update(Transaction $transaction): Transaction
     {
-        // TODO: Implement create() method.
+        return $this->mySqlTransactionRepository->update($transaction);
     }
 }
