@@ -2,9 +2,6 @@
 
 namespace App\Models\Repositories\Logs;
 
-use App\Models\Entities\Log;
-use Illuminate\Support\Collection;
-
 class LogRepository implements ILogRepository
 {
     private $mySqlLogRepository;

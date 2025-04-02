@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Entities\Transaction;
 use App\Models\Repositories\Transactions\TransactionRepository;
+use App\Models\Transaction;
 
 class TransactionService
 {

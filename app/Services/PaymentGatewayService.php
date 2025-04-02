@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\Entities\Transaction;
 use App\Models\Repositories\Logs\LogRepository;
 use App\Models\Repositories\Transactions\TransactionRepository;
+use App\Models\Transaction;
+use Exception;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Exception;
 
 class PaymentGatewayService
 {
-    protected $gateways;
+    public $gateways;
     private LogRepository $logRepository;
     private TransactionRepository $transactionRepository;
 
@@ -102,7 +102,7 @@ class PaymentGatewayService
     }
 
 
-    private function sendToGateway($gateway, float $amount, string $callbackUrl)
+    public function sendToGateway($gateway, float $amount, string $callbackUrl)
     {
         $requestData = [
             'merchant_id' => $gateway['merchant_id'],

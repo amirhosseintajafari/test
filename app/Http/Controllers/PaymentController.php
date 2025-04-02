@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Entities\Transaction;
+use App\Models\Transaction;
 use App\Services\PaymentGatewayService;
 use Illuminate\Http\Request;
 

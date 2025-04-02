@@ -2,8 +2,7 @@
 
 namespace App\Models\Repositories\Transactions;
 
-use App\Models\Entities\Transaction;
-use Illuminate\Support\Collection;
+use App\Models\Transaction;
 
 class MySqlTransactionRepository implements ITransactionRepository
 {

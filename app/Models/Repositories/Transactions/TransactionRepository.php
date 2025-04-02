@@ -2,7 +2,7 @@
 
 namespace App\Models\Repositories\Transactions;
 
-use App\Models\Entities\Transaction;
+use App\Models\Transaction;
 
 class TransactionRepository implements ITransactionRepository
 {

@@ -2,8 +2,7 @@
 
 namespace App\Models\Repositories\Logs;
 
-use App\Models\Entities\Log;
-use Illuminate\Support\Collection;
+use App\Models\Log;
 
 class MySqlLogRepository implements ILogRepository
 {
