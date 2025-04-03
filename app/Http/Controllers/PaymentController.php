@@ -18,7 +18,7 @@ class PaymentController extends Controller
     public function handlePayment(Request $request)
     {
         $validated = $request->validate([
-            'amount' => 'required|numeric|min:1000', // حداقل ۱۰۰۰ تومان
+            'amount' => 'required|numeric|min:1000',
             'callback_url' => 'required|url',
             'order_id' => 'required'
         ]);
