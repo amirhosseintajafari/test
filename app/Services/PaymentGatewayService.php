@@ -102,6 +102,7 @@ class PaymentGatewayService
     {
         return [
             'merchant_id' => $gateway['merchant_id'],
+            'base_url' => $gateway['base_url'],
             'max_request' => $gateway['max_request'],
             'amount' => $amount,
             'callback' => $callbackUrl,
