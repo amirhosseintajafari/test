@@ -49,6 +49,7 @@ class PaymentGatewayService
                 $logs = array_merge($logs, $this->attemptPayment($gateway, $amount, $callbackUrl, $transaction, $cacheKey, $requestCount));
 
                 if ($this->isPaymentSuccessful($logs)) {
+                    $this->logRepository->insert($logs);
                     return Cache::get($cacheKey);
                 }
             }
