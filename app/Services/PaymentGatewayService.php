@@ -68,6 +68,9 @@ class PaymentGatewayService
     {
         $logs = [];
         for ($i = 0; $i < $gateway['max_request']; $i++) {
+            if (!$this->isGatewayAvailable($gateway['name'])) {
+                continue;
+            }
             try {
                 $requestData = $this->buildRequestData($gateway, $amount, $callbackUrl);
                 $response = $this->sendToGateway($gateway, $requestData);
@@ -79,7 +82,6 @@ class PaymentGatewayService
                 }
 
                 $logs[] = $this->buildLogEntry($transaction->id, $gateway['name'], $status, $response, $requestData);
-
                 if ($status == StatusEnum::PAID->value) {
                     $this->finalizeSuccessfulPayment($transaction->id, $cacheKey, $gateway['name'], $response, $requestData);
                     return $logs;
@@ -148,7 +150,6 @@ class PaymentGatewayService
         ];
 
         Cache::put($cacheKey, $result, now()->addMinutes(10));
-        $this->logRepository->insert([$this->buildLogEntry($transactionId, $gatewayName, StatusEnum::PAID->value, $response, $requestData)]);
     }
 
     private function handleFailedPayment(int $transactionId, string $gatewayName, array $requestData): array

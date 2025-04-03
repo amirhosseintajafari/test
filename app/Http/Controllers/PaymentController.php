@@ -31,7 +31,7 @@ class PaymentController extends Controller
         $transaction = $this->paymentGatewayService->createTransaction($transaction);
         try {
             $paymentResult = $this->paymentGatewayService->processPayment($amount, $callbackUrl, $transaction);
-;
+
             if (filled($paymentResult)) {
                 $transaction->status = StatusEnum::PAID->value;
                 $transaction->transaction_code = $paymentResult['transaction_code'];

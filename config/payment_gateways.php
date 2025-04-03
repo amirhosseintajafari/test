@@ -4,7 +4,7 @@ return [
     'gateways' => [
         [
             'name' => 'zarinpal',
-            'base_url' => env('APP_URL') . '/api/mock-payment',
+            'base_url' => env('APP_URL') . '/ap/mock-payment',
             'merchant_id' => 123456,
             'priority' => 1,
             'max_request' => 4,

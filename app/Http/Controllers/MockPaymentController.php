@@ -29,17 +29,6 @@ class MockPaymentController extends Controller
                 'redirect_url' => $request->input('callback') . '?response_code=' . $responseCode . '&status=success',
             ]);
         } else {
-            $statuses = [
-                ResponseCodeEnum::CANCELED->value,
-                ResponseCodeEnum::BLOCKED->value,
-                ResponseCodeEnum::UNDER_REVIEW->value,
-                ResponseCodeEnum::REVERSED->value,
-                ResponseCodeEnum::PENDING->value,
-                ResponseCodeEnum::FAILED->value
-            ];
-
-            $responseCode = $statuses[array_rand($statuses)];
-
             $statusMessages = [
                 ResponseCodeEnum::CANCELED->value => StatusEnum::CANCELED->value,
                 ResponseCodeEnum::BLOCKED->value => StatusEnum::BLOCKED->value,
@@ -49,8 +38,13 @@ class MockPaymentController extends Controller
                 ResponseCodeEnum::FAILED->value => StatusEnum::FAILED->value
             ];
 
+            $responseCode = array_rand($statusMessages);
+
+            $statusMessage = $statusMessages[$responseCode];
+
+
             return response()->json([
-                'status' => $statusMessages[$responseCode] ?? StatusEnum::FAILED->value,
+                'status' => $statusMessage[$responseCode] ?? StatusEnum::FAILED->value,
                 'message' => 'پرداخت شبیه‌سازی‌شده ناموفق بود.',
                 'transaction_id' => null,
                 'response_code' => $responseCode,
