@@ -10,5 +10,4 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:api');
 
 Route::post('/payment', [PaymentController::class, 'handlePayment']);
-//Route::get('/payment/callback', [PaymentController::class, 'handleCallback']);
 Route::post('mock-payment', [MockPaymentController::class, 'handleMockPayment']);

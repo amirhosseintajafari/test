@@ -18,6 +18,8 @@ return new class extends Migration
             $table->enum('status',['paid','failed','canceled','reversed','pending','blocked','under_review'])->nullable();
             $table->string('gateway_name')->nullable();
             $table->unsignedSmallInteger('response_code')->nullable();
+            $table->json('response_data')->nullable();
+            $table->json('request_data')->nullable();
             $table->timestamps();
         });
     }
