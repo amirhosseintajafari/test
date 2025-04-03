@@ -11,4 +11,5 @@ enum ResponseCodeEnum: int
     case REVERSED = 13;
     case PENDING = 14;
     case FAILED = 15;
+    case INTERNAL_ERROR = 17;
 }

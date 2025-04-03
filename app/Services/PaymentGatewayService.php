@@ -67,14 +67,17 @@ class PaymentGatewayService
     private function attemptPayment(array $gateway, int $amount, string $callbackUrl, Transaction $transaction, string $cacheKey, int &$requestCount): array
     {
         $logs = [];
-
-
         for ($i = 0; $i < $gateway['max_request']; $i++) {
             try {
                 $requestData = $this->buildRequestData($gateway, $amount, $callbackUrl);
                 $response = $this->sendToGateway($gateway, $requestData);
 
                 $status = $this->getPaymentStatus($response);
+
+                if ($response['response_code'] == 17){
+                    $this->markGatewayAsUnavailable($gateway['name']);
+                }
+
                 $logs[] = $this->buildLogEntry($transaction->id, $gateway['name'], $status, $response, $requestData);
 
                 if ($status == StatusEnum::PAID->value) {
@@ -175,20 +178,35 @@ class PaymentGatewayService
 
     public function sendToGateway($gateway, $requestData)
     {
+        try {
+            $response = Http::post("{$gateway['base_url']}", $requestData);
+            if ($response->successful()) {
+                return [
+                    'status' => $response->json('status'),
+                    'message' => $response->json('message'),
+                    'transaction_code' => $response->json('transaction_code'),
+                    'redirect_url' => $response->json('redirect_url'),
+                    'response_code' => $response->json('response_code'),
+                ];
+            }
 
-        $response = Http::post("{$gateway['base_url']}", $requestData);
-        if ($response->successful()) {
             return [
-                'status' => $response->json('status'),
-                'message' => $response->json('message'),
-                'transaction_code' => $response->json('transaction_code'),
-                'redirect_url' => $response->json('redirect_url'),
-                'response_code' => $response->json('response_code'),
+                'status' => StatusEnum::FAILED,
+                'response_code' => 17,
+                'response_data' => null,
+                'request_data' => json_encode($requestData),
+                'updated_at' => now(),
+                'created_at' => now(),
+            ];
+        } catch (\Exception $e) {
+            // در صورت بروز خطا در ارسال درخواست
+            return [
+                'error' => true,
+                'message' => 'خطا در اتصال به درگاه: ' . $e->getMessage()
             ];
         }
-
-        throw new Exception("مشکلی در درگاه {$gateway['name']} رخ داده است.");
     }
+
 
     public function createTransaction(Transaction $transaction)
     {
