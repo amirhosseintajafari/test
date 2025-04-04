@@ -213,7 +213,7 @@ class SendToGatewayJob implements ShouldQueue
         }
     }
 
-    private function checkCacheMaxRequestCount(string $cacheKey, int $totalMaxRequest): bool
+    private function checkCacheMaxRequestCount(string $cacheKey): bool
     {
         return Cache::get($cacheKey . 'max_request') == 0;
     }
