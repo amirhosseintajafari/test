@@ -25,20 +25,15 @@ class PaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => 'required|numeric|min:1000',
-            'callback_url' => 'required|url',
-            'order_id' => ['required',Rule::unique('transactions')]
+            'amount' => ['required','numeric','min:1000'],
+            'callback_url' => ['required','url'],
+            'order_id' => ['required','numeric',Rule::unique('transactions')]
         ];
     }
 
     protected function failedValidation(Validator $validator)
     {
         $api_errors = $validator->errors();
-
-        throw new HttpResponseException(
-            response()
-                ->json($api_errors, 400)
-                ->withHeaders(['Content-Type' => 'text/plain', 'charset' => 'utf-8'])
-        );
+        throw new HttpResponseException(response()->json($api_errors, 422));
     }
 }

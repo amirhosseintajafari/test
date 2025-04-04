@@ -4,10 +4,12 @@ return [
     'gateways' => [
         [
             'name' => 'zarinpal',
-            'base_url' => env('APP_URL') . '/ap/mock-payment',
-            'merchant_id' => 123456,
+            'base_url' => env('APP_URL') . '/apه/mock-payment',
+            'merchant_id' => null,
             'priority' => 1,
             'max_request' => 4,
+            'password' => 1365241,
+            'username' => 'amirhossein'
         ],
         [
             'name' => 'payping',

@@ -30,6 +30,7 @@ class MySqlTransactionRepository implements ITransactionRepository
             'response_code' => $transaction->response_code,
             'updated_at' => now(),
         ]);
+
         return $transaction;
     }
 }
