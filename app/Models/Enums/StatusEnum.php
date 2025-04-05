@@ -28,4 +28,16 @@ enum StatusEnum: string
         $responseCode = $response['response_code'] ?? null;
         return ($statusMessages[$responseCode] ?? StatusEnum::FAILED->value);
     }
+
+    public static function getStatusMessages()
+    {
+        return [
+            ResponseCodeEnum::CANCELED->value => StatusEnum::CANCELED->value,
+            ResponseCodeEnum::BLOCKED->value => StatusEnum::BLOCKED->value,
+            ResponseCodeEnum::UNDER_REVIEW->value => StatusEnum::UNDER_REVIEW->value,
+            ResponseCodeEnum::REVERSED->value => StatusEnum::REVERSED->value,
+            ResponseCodeEnum::PENDING->value => StatusEnum::PENDING->value,
+            ResponseCodeEnum::FAILED->value => StatusEnum::FAILED->value
+        ];
+    }
 }

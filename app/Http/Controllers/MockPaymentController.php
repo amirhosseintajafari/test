@@ -27,14 +27,7 @@ class MockPaymentController extends Controller
                 'redirect_url' => $request->input('callback') . '?response_code=' . $responseCode . '&status=success',
             ]);
         } else {
-            $statusMessages = [
-                ResponseCodeEnum::CANCELED->value => StatusEnum::CANCELED->value,
-                ResponseCodeEnum::BLOCKED->value => StatusEnum::BLOCKED->value,
-                ResponseCodeEnum::UNDER_REVIEW->value => StatusEnum::UNDER_REVIEW->value,
-                ResponseCodeEnum::REVERSED->value => StatusEnum::REVERSED->value,
-                ResponseCodeEnum::PENDING->value => StatusEnum::PENDING->value,
-                ResponseCodeEnum::FAILED->value => StatusEnum::FAILED->value
-            ];
+            $statusMessages = StatusEnum::getStatusMessages();
 
             $responseCode = array_rand($statusMessages);
 
