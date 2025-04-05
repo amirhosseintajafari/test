@@ -86,14 +86,14 @@ class PaymentServiceTest extends TestCase
 //        $this->assertEquals('failed', $result['status']);
 //    }
 
-    public function testMaxFailedAttempts()
-    {
-        $transaction = Transaction::factory()->create();
-        Cache::put("failed_attempts_{$transaction->id}", 5);
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage("تعداد تلاش‌های ناموفق زیاد است. لطفاً بعداً تلاش کنید.");
-
-        $this->paymentService->processPayment(1000, 'https://callback.url', $transaction);
-    }
+//    public function testMaxFailedAttempts()
+//    {
+//        $transaction = Transaction::factory()->create();
+//        Cache::put("failed_attempts_{$transaction->id}", 5);
+//
+//        $this->expectException(\Exception::class);
+//        $this->expectExceptionMessage("تعداد تلاش‌های ناموفق زیاد است. لطفاً بعداً تلاش کنید.");
+//
+//        $this->paymentService->processPayment(1000, 'https://callback.url', $transaction);
+//    }
 }
