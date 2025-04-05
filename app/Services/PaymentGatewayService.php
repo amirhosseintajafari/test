@@ -31,6 +31,7 @@ class PaymentGatewayService
         $transaction->creator_id = $creatorId;
 
         $transaction = $this->createTransaction($transaction);
+
         $transaction = $this->lockTransactionForUpdate($transaction);
 
         $this->processPayment($amount, $callbackUrl, $transaction);
@@ -52,7 +53,18 @@ class PaymentGatewayService
             if (isGatewayAvailable($gateway['name']) == false) {
                 continue;
             }
-            $this->attemptPayment($gateway, $amount, $callbackUrl, $transaction, $cacheKey);
+            $requestData = [
+                'merchant_id' => $gateway['merchant_id'] ?? null,
+                'username' => $gateway['username'] ?? null,
+                'password' => $gateway['password'] ?? null,
+                'amount' => $amount,
+                'gateway' => $gateway,
+                'callback' => $callbackUrl,
+                'cacheKeyTransaction' => $cacheKey,
+                'transaction' => $transaction
+            ];
+
+            $this->attemptPayment($requestData);
         }
 
     }
@@ -63,10 +75,10 @@ class PaymentGatewayService
     }
 
 
-    private function attemptPayment(array $gateway, int $amount, string $callbackUrl, Transaction $transaction, string $cacheKey): void
+    private function attemptPayment(array $requestData): void
     {
         $handler = new JobHandler();
-        $handler->sendToGateway($gateway, $amount, $callbackUrl, $transaction, $cacheKey);
+        $handler->sendToGateway($requestData);
     }
 
     public function createTransaction(Transaction $transaction): Transaction

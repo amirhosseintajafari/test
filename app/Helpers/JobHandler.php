@@ -8,9 +8,9 @@ use App\Models\Transaction;
 
 class JobHandler
 {
-    public function sendToGateway(array $gateway, int $amount, string $callbackUrl, Transaction $transaction, string $cacheKey)
+    public function sendToGateway(array $requestData)
     {
-        $job = new SendToGatewayJob($gateway ,$amount, $callbackUrl, $transaction, $cacheKey);
+        $job = new SendToGatewayJob($requestData);
         dispatch($job)->onQueue('send_to_gateway');
     }
 

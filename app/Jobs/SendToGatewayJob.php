@@ -9,13 +9,11 @@ use App\Models\Repositories\Logs\LogRepository;
 use App\Models\Repositories\Logs\MySqlLogRepository;
 use App\Models\Repositories\Transactions\MySqlTransactionRepository;
 use App\Models\Repositories\Transactions\TransactionRepository;
-use App\Models\Transaction;
 use App\Services\PaymentGatewayService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class SendToGatewayJob implements ShouldQueue
 {
@@ -28,13 +26,16 @@ class SendToGatewayJob implements ShouldQueue
     private PaymentGatewayService $paymentGatewayService;
     private \Illuminate\Support\Collection $gateways;
     private int $totalMaxRequest;
+    private mixed $openBankingClass;
 
 
     /**
      * Create a new job instance.
      */
-    public function __construct(private $gateway,private int $amount,private string $callbackUrl,private Transaction $transaction,private readonly string $cacheKeyTransaction){
+    public function __construct(private $requestData)
+    {
         $this->totalMaxRequest = array_sum(array_column(config('payment_gateways.gateways'), 'max_request'));
+        $this->openBankingClass = new $requestData['gateway']['class']();
     }
 
     /**
@@ -42,7 +43,7 @@ class SendToGatewayJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $this->updateCacheMaxRequestCount($this->cacheKeyTransaction,$this->totalMaxRequest);
+        $this->updateCacheMaxRequestCount($this->requestData['cacheKeyTransaction'], $this->totalMaxRequest);
         $this->initRepositoriesAndServices();
 
         if ($this->shouldSkip()) {
@@ -51,35 +52,35 @@ class SendToGatewayJob implements ShouldQueue
 
         $cacheKeyMaxRequestGateway = $this->buildCacheKey();
         try {
-            $requestData = $this->buildRequestData($this->gateway, $this->amount, $this->callbackUrl);
-            $response = $this->sendToGateway($this->gateway, $requestData);
+            $requestData = $this->openBankingClass->buildRequestData($this->requestData);
+            $response = $this->sendToGateway($this->requestData['gateway'], $requestData);
             $this->updateCacheRequestCount($cacheKeyMaxRequestGateway);
 
             $status = StatusEnum::getPaymentStatus($response);
 
             if ($this->isInternalError($response)) {
-                $this->markGatewayAsUnavailable($this->gateway['name']);
+                $this->markGatewayAsUnavailable($this->requestData['gateway']['name']);
             }
 
-            $logs = $this->buildLogEntry($this->transaction->id, $this->gateway['name'], $status, $response, $requestData);
+            $logs = $this->buildLogEntry($this->requestData['transaction']->id, $this->requestData['gateway']['name'], $status, $response, $requestData);
 
             $this->updateTransaction($status, $response);
-            if ($this->checkCacheMaxRequestCount($this->cacheKeyTransaction)){
-                (new JobHandler())->sendResponse( $this->callbackUrl, $this->transaction);
+            if ($this->checkCacheMaxRequestCount($this->requestData['cacheKeyTransaction'])) {
+                (new JobHandler())->sendResponse($this->requestData['callbackUrl'], $this->requestData['transaction']);
                 return;
             }
 
             if ($status === StatusEnum::PAID->value) {
-                (new JobHandler())->sendResponse( $this->callbackUrl, $this->transaction);
-                $this->finalizeSuccessfulPayment($this->cacheKeyTransaction, $this->gateway['name'], $response, $this->buildRequestData($this->gateway, $this->amount, $this->callbackUrl));
+                (new JobHandler())->sendResponse($this->requestData['callbackUrl'], $this->requestData['transaction']);
+                $this->finalizeSuccessfulPayment($this->requestData['cacheKeyTransaction'], $this->requestData['gateway']['name'], $response, $this->buildRequestData($this->requestData['gateway'], $this->requestData['amount'], $this->requestData['callbackUrl']));
                 return;
             } else {
                 $this->retryIfNeeded($cacheKeyMaxRequestGateway);
             }
         } catch (Exception) {
-            $logs = $this->handleFailedPayment($this->transaction->id, $this->gateway['name'], $requestData);
-            $this->markGatewayAsUnavailable($this->gateway['name']);
-            Cache::increment("failed_attempts_{$this->transaction->id}");
+            $logs = $this->handleFailedPayment($this->requestData['transaction']->id, $this->requestData['gateway']['name'], $this->requestData);
+            $this->markGatewayAsUnavailable($this->requestData['gateway']['name']);
+            Cache::increment("failed_attempts_{$this->requestData['transaction']->id}");
         }
 
         $this->logRepository->insert($logs ?? []);
@@ -88,24 +89,9 @@ class SendToGatewayJob implements ShouldQueue
     private function sendToGateway($gateway, $requestData)
     {
         try {
-            $response = Http::post("{$gateway['base_url']}", $requestData);
-            if ($response->successful()) {
-                return [
-                    'status' => $response->json('status'),
-                    'message' => $response->json('message'),
-                    'transaction_code' => $response->json('transaction_code'),
-                    'redirect_url' => $response->json('redirect_url'),
-                    'response_code' => $response->json('response_code'),
-                ];
-            }
-            return [
-                'status' => StatusEnum::FAILED->value,
-                'response_code' => ResponseCodeEnum::INTERNAL_ERROR->value,
-                'response_data' => null,
-                'request_data' => json_encode($requestData),
-                'updated_at' => json_encode(now()),
-                'created_at' => json_encode(now()),
-            ];
+            $response = $this->openBankingClass->sendToOpenBanking($gateway, $requestData);
+            return $this->openBankingClass->getResponseData($response,$requestData);
+
         } catch (\Exception $e) {
             return [
                 'error' => true,
@@ -188,13 +174,13 @@ class SendToGatewayJob implements ShouldQueue
 
     private function shouldSkip(): bool
     {
-        return $this->transaction->status === StatusEnum::PAID->value
-            || !isGatewayAvailable($this->gateway['name']);
+        return $this->requestData['transaction']->status === StatusEnum::PAID->value
+            || !isGatewayAvailable($this->requestData['gateway']['name']);
     }
 
     private function buildCacheKey(): string
     {
-        return "txn:{$this->transaction->id}:gateway:{$this->gateway['name']}:requests";
+        return "txn:{$this->requestData['transaction']->id}:gateway:{$this->requestData['gateway']['name']}:requests";
     }
 
     private function updateCacheRequestCount(string $cacheKey): void
@@ -206,7 +192,7 @@ class SendToGatewayJob implements ShouldQueue
         }
     }
 
-    private function updateCacheMaxRequestCount(string $cacheKey,int $totalMaxRequest): void
+    private function updateCacheMaxRequestCount(string $cacheKey, int $totalMaxRequest): void
     {
         if (!Cache::has($cacheKey . 'max_request')) {
             Cache::put($cacheKey . 'max_request', $totalMaxRequest, now()->addMinute());
@@ -228,8 +214,8 @@ class SendToGatewayJob implements ShouldQueue
 
     private function retryIfNeeded(string $cacheKey): void
     {
-        if (Cache::get($cacheKey) < $this->gateway['max_request']) {
-            (new JobHandler())->sendToGateway($this->gateway, $this->amount, $this->callbackUrl, $this->transaction, $this->cacheKeyTransaction);
+        if (Cache::get($cacheKey) < $this->requestData['gateway']['max_request']) {
+            (new JobHandler())->sendToGateway($this->requestData);
         }
     }
 
@@ -240,12 +226,12 @@ class SendToGatewayJob implements ShouldQueue
      */
     public function updateTransaction(string $status, array $response): void
     {
-        $this->transaction->status = $status;
-        $this->transaction->transaction_code = $response['transaction_code'] ?? null;
-        $this->transaction->gateway_name = $this->gateway['name'];
-        $this->transaction->response_code = $response['response_code'] ?? null;
+        $this->requestData['transaction']->status = $status;
+        $this->requestData['transaction']->transaction_code = $response['transaction_code'] ?? null;
+        $this->requestData['transaction']->gateway_name = $this->requestData['gateway']['name'];
+        $this->requestData['transaction']->response_code = $response['response_code'] ?? null;
 
-        $this->paymentGatewayService->updateTransaction($this->transaction);
+        $this->paymentGatewayService->updateTransaction($this->requestData['transaction']);
     }
 
 }
