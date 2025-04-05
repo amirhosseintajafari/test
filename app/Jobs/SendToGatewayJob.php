@@ -74,7 +74,7 @@ class SendToGatewayJob implements ShouldQueue
 
             if ($status === StatusEnum::PAID->value) {
                 (new JobHandler())->sendResponse($this->requestData['callback'], $this->requestData['transaction']);
-                $this->finalizeSuccessfulPayment($this->requestData['cacheKeyTransaction'], $this->requestData['gateway']['name'], $response, $this->buildRequestData($this->requestData['gateway'], $this->requestData['amount'], $this->requestData['callback']));
+                $this->finalizeSuccessfulPayment($this->requestData['cacheKeyTransaction'], $this->requestData['gateway']['name'], $response, $this->openBankingClass->buildRequestData($this->requestData));
                 return;
             } else {
                 $this->retryIfNeeded($cacheKeyMaxRequestGateway);
@@ -102,19 +102,6 @@ class SendToGatewayJob implements ShouldQueue
                 'message' => 'خطا در اتصال به درگاه: ' . $e->getMessage()
             ];
         }
-    }
-
-    private function buildRequestData(array $gateway, int $amount, string $callbackUrl): array
-    {
-        return [
-            'merchant_id' => $gateway['merchant_id'] ?? null,
-            'base_url' => $gateway['base_url'] ?? null,
-            'max_request' => $gateway['max_request'] ?? null,
-            'password' => $gateway['password'] ?? null,
-            'username' => $gateway['username'] ?? null,
-            'amount' => $amount,
-            'callback' => $callbackUrl,
-        ];
     }
 
     private function buildLogEntry(int $transactionId, string $gatewayName, string $status, array $response, array $requestData): array
