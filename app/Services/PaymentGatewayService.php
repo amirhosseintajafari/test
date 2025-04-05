@@ -63,12 +63,10 @@ class PaymentGatewayService
     }
 
 
-    private function attemptPayment(array $gateway, int $amount, string $callbackUrl, Transaction $transaction, string $cacheKey): array
+    private function attemptPayment(array $gateway, int $amount, string $callbackUrl, Transaction $transaction, string $cacheKey): void
     {
-        $logs = [];
         $handler = new JobHandler();
         $handler->sendToGateway($gateway, $amount, $callbackUrl, $transaction, $cacheKey);
-        return $logs;
     }
 
     public function createTransaction(Transaction $transaction): Transaction

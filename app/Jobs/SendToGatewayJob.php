@@ -66,9 +66,10 @@ class SendToGatewayJob implements ShouldQueue
             $logs = $this->buildLogEntry($this->transaction->id, $this->gateway['name'], $status, $response, $requestData);
 
             $this->updateTransaction($status, $response);
-            if ($this->checkCacheMaxRequestCount($this->cacheKey,$this->totalMaxRequest) || $status === StatusEnum::PAID->value){
+            if ($this->checkCacheMaxRequestCount($this->cacheKey) || $status === StatusEnum::PAID->value){
                 (new JobHandler())->sendResponse( $this->callbackUrl, $this->transaction);
             }
+
             if ($status === StatusEnum::PAID->value) {
                 $this->finalizeSuccessfulPayment($this->cacheKey, $this->gateway['name'], $response, $this->buildRequestData($this->gateway, $this->amount, $this->callbackUrl));
             } else {
