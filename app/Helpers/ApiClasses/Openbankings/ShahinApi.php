@@ -38,7 +38,6 @@ class ShahinApi implements IOpenbanking
                 'response_code' => $response->json('response_code'),
             ];
         }
-        dump('17');
         return [
             'status' => StatusEnum::FAILED->value,
             'response_code' => ResponseCodeEnum::INTERNAL_ERROR->value,
