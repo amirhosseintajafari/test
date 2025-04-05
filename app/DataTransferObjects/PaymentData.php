@@ -2,6 +2,8 @@
 
 namespace App\DataTransferObjects;
 
+use Illuminate\Http\Request;
+
 class PaymentData
 {
     public function __construct(
@@ -12,7 +14,7 @@ class PaymentData
     ) {
     }
 
-    public static function fromRequest(\Illuminate\Http\Request $request): self
+    public static function fromRequest(Request $request): self
     {
         return new self(
             amount: (int) $request->input('amount'),
