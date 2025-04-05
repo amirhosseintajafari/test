@@ -68,18 +68,19 @@ class SendToGatewayJob implements ShouldQueue
 
             $this->updateTransaction($status, $response);
             if ($this->checkCacheMaxRequestCount($this->requestData['cacheKeyTransaction'])) {
-                (new JobHandler())->sendResponse($this->requestData['callbackUrl'], $this->requestData['transaction']);
+                (new JobHandler())->sendResponse($this->requestData['callback'], $this->requestData['transaction']);
                 return;
             }
 
             if ($status === StatusEnum::PAID->value) {
-                (new JobHandler())->sendResponse($this->requestData['callbackUrl'], $this->requestData['transaction']);
-                $this->finalizeSuccessfulPayment($this->requestData['cacheKeyTransaction'], $this->requestData['gateway']['name'], $response, $this->buildRequestData($this->requestData['gateway'], $this->requestData['amount'], $this->requestData['callbackUrl']));
+                (new JobHandler())->sendResponse($this->requestData['callback'], $this->requestData['transaction']);
+                $this->finalizeSuccessfulPayment($this->requestData['cacheKeyTransaction'], $this->requestData['gateway']['name'], $response, $this->buildRequestData($this->requestData['gateway'], $this->requestData['amount'], $this->requestData['callback']));
                 return;
             } else {
                 $this->retryIfNeeded($cacheKeyMaxRequestGateway);
             }
-        } catch (Exception) {
+        } catch (Exception $r) {
+            dump($r);
             $logs = $this->handleFailedPayment($this->requestData['transaction']->id, $this->requestData['gateway']['name'], $this->requestData);
             $this->markGatewayAsUnavailable($this->requestData['gateway']['name']);
             Cache::increment("failed_attempts_{$this->requestData['transaction']->id}");
