@@ -22,7 +22,6 @@ class MySqlTransactionRepository implements ITransactionRepository
 
     public function update(Transaction $transaction): Transaction
     {
-
         Transaction::query()->where('id',$transaction->id)->update([
             'status' => $transaction->status,
             'transaction_code' => $transaction->transaction_code,
@@ -31,6 +30,13 @@ class MySqlTransactionRepository implements ITransactionRepository
             'updated_at' => now(),
         ]);
 
+        return $transaction;
+    }
+
+
+    public function lockTransactionForUpdate(Transaction $transaction): Transaction
+    {
+        Transaction::query()->where('id',$transaction->id)->lockForUpdate();
         return $transaction;
     }
 }

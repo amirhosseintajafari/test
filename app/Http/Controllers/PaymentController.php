@@ -3,15 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PaymentRequest;
-use App\Models\Enums\StatusEnum;
-use App\Models\Transaction;
 use App\Services\PaymentGatewayService;
-use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-
-
     public function __construct(private PaymentGatewayService $paymentGatewayService){}
 
     public function handlePayment(PaymentRequest $request)

@@ -6,12 +6,8 @@ use App\Models\Transaction;
 
 class TransactionRepository implements ITransactionRepository
 {
-    private MySqlTransactionRepository $mySqlTransactionRepository;
 
-    public function __construct(MySqlTransactionRepository $mySqlTransactionRepository)
-    {
-        $this->mySqlTransactionRepository = $mySqlTransactionRepository;
-    }
+    public function __construct(private MySqlTransactionRepository $mySqlTransactionRepository){}
 
     public function create(Transaction $transaction): Transaction
     {
@@ -21,5 +17,10 @@ class TransactionRepository implements ITransactionRepository
     public function update(Transaction $transaction): Transaction
     {
         return $this->mySqlTransactionRepository->update($transaction);
+    }
+
+    public function lockTransactionForUpdate(Transaction $transaction): Transaction
+    {
+        return $this->mySqlTransactionRepository->lockTransactionForUpdate($transaction);
     }
 }

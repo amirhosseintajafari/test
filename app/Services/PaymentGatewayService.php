@@ -31,6 +31,8 @@ class PaymentGatewayService
         $transaction->creator_id = $creatorId;
 
         $transaction = $this->createTransaction($transaction);
+        $transaction = $this->lockTransactionForUpdate($transaction);
+
         $this->processPayment($amount, $callbackUrl, $transaction);
     }
 
@@ -69,12 +71,17 @@ class PaymentGatewayService
         return $logs;
     }
 
-    public function createTransaction(Transaction $transaction)
+    public function createTransaction(Transaction $transaction): Transaction
     {
         return $this->transactionRepository->create($transaction);
     }
 
-    public function updateTransaction(Transaction $transaction)
+    public function lockTransactionForUpdate(Transaction $transaction): Transaction
+    {
+        return $this->transactionRepository->lockTransactionForUpdate($transaction);
+    }
+
+    public function updateTransaction(Transaction $transaction): Transaction
     {
         return $this->transactionRepository->update($transaction);
     }

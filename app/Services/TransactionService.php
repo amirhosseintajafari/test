@@ -7,12 +7,8 @@ use App\Models\Transaction;
 
 class TransactionService
 {
-    private TransactionRepository $transactionRepository;
 
-    public function __construct(TransactionRepository $transactionRepository)
-    {
-        $this->transactionRepository = $transactionRepository;
-    }
+    public function __construct(private TransactionRepository $transactionRepository){}
 
     public function create(Transaction $transaction)
     {
