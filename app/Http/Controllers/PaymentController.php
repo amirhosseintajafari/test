@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\PaymentData;
 use App\Http\Requests\PaymentRequest;
 use App\Services\PaymentGatewayService;
 
@@ -12,12 +13,15 @@ class PaymentController extends Controller
     public function handlePayment(PaymentRequest $request)
     {
         try {
+            $paymentData = PaymentData::fromRequest($request);
+
             $this->paymentGatewayService->handleUserPayment(
-                amount: $request->input('amount'),
-                orderId: $request->input('order_id'),
-                callbackUrl: $request->input('callback_url'),
-                creatorId: auth()->id() ?? 1
+                amount: $paymentData->amount,
+                orderId: $paymentData->orderId,
+                callbackUrl: $paymentData->callbackUrl,
+                creatorId: $paymentData->creatorId
             );
+
             return response()->json([
                     'status' => 'success',
                     'message' => 'درخواست پرداخت ارسال شد.',
