@@ -8,9 +8,9 @@ use App\Services\PaymentGatewayService;
 
 class PaymentController extends Controller
 {
-    public function __construct(private PaymentGatewayService $paymentGatewayService){}
+    public function __construct(private readonly PaymentGatewayService $paymentGatewayService){}
 
-    public function handlePayment(PaymentRequest $request)
+    public function handlePayment(PaymentRequest $request): \Illuminate\Http\JsonResponse
     {
         try {
             $paymentData = PaymentData::fromRequest($request);

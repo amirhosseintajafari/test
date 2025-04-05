@@ -17,6 +17,6 @@ class JobHandler
     public function sendResponse(string $callbackUrl, Transaction $transaction)
     {
         $job = new SendResponse($callbackUrl, $transaction);
-        dispatch($job)->onQueue('send_to_gateway');
+        dispatch($job)->onQueue('send_response');
     }
 }

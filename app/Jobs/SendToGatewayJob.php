@@ -207,8 +207,8 @@ class SendToGatewayJob implements ShouldQueue
 
     private function updateCacheMaxRequestCount(string $cacheKey,int $totalMaxRequest): void
     {
-        if (!Cache::has($cacheKey)) {
-            Cache::put($cacheKey . 'max_request', $totalMaxRequest, now()->addMinute(1));
+        if (!Cache::has($cacheKey . 'max_request')) {
+            Cache::put($cacheKey . 'max_request', $totalMaxRequest, now()->addMinute());
         } else {
             Cache::decrement($cacheKey . 'max_request');
         }
@@ -216,7 +216,7 @@ class SendToGatewayJob implements ShouldQueue
 
     private function checkCacheMaxRequestCount(string $cacheKey): bool
     {
-        return Cache::get($cacheKey . 'max_request') == 0;
+        return Cache::get($cacheKey . 'max_request') === 0;
     }
 
     private function isInternalError(array $response): bool

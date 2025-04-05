@@ -13,7 +13,6 @@ class MySqlTransactionRepository implements ITransactionRepository
             'amount' => $transaction->amount,
             'order_id' => $transaction->order_id,
             'creator_id' => 1,
-            'updated_at' => now(),
             'created_at' => now(),
         ]);
         $transaction->id = $id;

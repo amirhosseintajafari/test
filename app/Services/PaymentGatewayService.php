@@ -14,7 +14,7 @@ class PaymentGatewayService
     public \Illuminate\Support\Collection $gateways;
 
 
-    public function __construct(private TransactionRepository $transactionRepository)
+    public function __construct(private readonly TransactionRepository $transactionRepository)
     {
         $this->gateways = collect(config('payment_gateways.gateways'))->sortBy('priority');
     }
