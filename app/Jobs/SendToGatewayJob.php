@@ -43,6 +43,7 @@ class SendToGatewayJob implements ShouldQueue
      */
     public function handle(): void
     {
+
         $this->updateCacheMaxRequestCount($this->requestData['cacheKeyTransaction'], $this->totalMaxRequest);
         $this->initRepositoriesAndServices();
 
@@ -52,8 +53,9 @@ class SendToGatewayJob implements ShouldQueue
 
         $cacheKeyMaxRequestGateway = $this->buildCacheKey();
         try {
-            $requestData = $this->openBankingClass->buildRequestData($this->requestData);
-            $response = $this->sendToGateway($this->requestData['gateway'], $requestData);
+            $requestDataToOpenBanking = $this->openBankingClass->buildRequestData($this->requestData);
+
+            $response = $this->sendToGateway($this->requestData['gateway'], $requestDataToOpenBanking);
             $this->updateCacheRequestCount($cacheKeyMaxRequestGateway);
 
             $status = StatusEnum::getPaymentStatus($response);
@@ -62,7 +64,7 @@ class SendToGatewayJob implements ShouldQueue
                 $this->markGatewayAsUnavailable($this->requestData['gateway']['name']);
             }
 
-            $logs = $this->buildLogEntry($this->requestData['transaction']->id, $this->requestData['gateway']['name'], $status, $response, $requestData);
+            $logs = $this->buildLogEntry($this->requestData['transaction']->id, $this->requestData['gateway']['name'], $status, $response, $requestDataToOpenBanking);
 
             $this->updateTransaction($status, $response);
             if ($this->checkCacheMaxRequestCount($this->requestData['cacheKeyTransaction'])) {
@@ -88,6 +90,7 @@ class SendToGatewayJob implements ShouldQueue
 
     private function sendToGateway($gateway, $requestData)
     {
+
         try {
             $response = $this->openBankingClass->sendToOpenBanking($gateway, $requestData);
             return $this->openBankingClass->getResponseData($response,$requestData);

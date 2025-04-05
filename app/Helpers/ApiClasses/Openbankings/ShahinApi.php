@@ -18,12 +18,13 @@ class ShahinApi implements IOpenbanking
             'password' => $requestData['password'],
             'amount' => $requestData['amount'],
             'callback' => $requestData['callback'],
+            'payment_type' => $requestData['payment_type'],
         ];
     }
 
     public function sendToOpenBanking($gateway, $requestData)
     {
-        return Http::post("{$gateway['base_url']}", $requestData);
+        return Http::post("{$gateway['base_url']}/" . $requestData['payment_type'], $requestData);
     }
 
     public function getResponseData($response, $requestData)
@@ -37,6 +38,7 @@ class ShahinApi implements IOpenbanking
                 'response_code' => $response->json('response_code'),
             ];
         }
+        dump('17');
         return [
             'status' => StatusEnum::FAILED->value,
             'response_code' => ResponseCodeEnum::INTERNAL_ERROR->value,

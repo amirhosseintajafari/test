@@ -19,7 +19,7 @@ class PaymentGatewayService
         $this->gateways = collect(config('payment_gateways.gateways'))->sortBy('priority');
     }
 
-    public function handleUserPayment(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
+    public function handlePayment(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
     {
         if (filled($this->gateways) === false) {
             throw new Exception("تمام درگاه ها به مشکلی خورده است.");
@@ -34,10 +34,44 @@ class PaymentGatewayService
 
         $transaction = $this->lockTransactionForUpdate($transaction);
 
-        $this->processPayment($amount, $callbackUrl, $transaction);
+        $this->processPayment($amount, $callbackUrl, $transaction,'normal');
+    }
+    public function handlePaymentPaya(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
+    {
+        if (filled($this->gateways) === false) {
+            throw new Exception("تمام درگاه ها به مشکلی خورده است.");
+        }
+
+        $transaction = new Transaction();
+        $transaction->amount = $amount;
+        $transaction->order_id = $orderId;
+        $transaction->creator_id = $creatorId;
+
+        $transaction = $this->createTransaction($transaction);
+
+        $transaction = $this->lockTransactionForUpdate($transaction);
+
+        $this->processPayment($amount, $callbackUrl, $transaction,'paya');
+    }
+    public function handlePaymentSatna(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
+    {
+        if (filled($this->gateways) === false) {
+            throw new Exception("تمام درگاه ها به مشکلی خورده است.");
+        }
+
+        $transaction = new Transaction();
+        $transaction->amount = $amount;
+        $transaction->order_id = $orderId;
+        $transaction->creator_id = $creatorId;
+
+        $transaction = $this->createTransaction($transaction);
+
+        $transaction = $this->lockTransactionForUpdate($transaction);
+
+        $this->processPayment($amount, $callbackUrl, $transaction,'satna');
     }
 
-    public function processPayment(int $amount, string $callbackUrl, Transaction $transaction)
+    public function processPayment(int $amount, string $callbackUrl, Transaction $transaction,String $payment_type)
     {
 
         $cacheKey = "payment_status_$transaction->id";
@@ -61,7 +95,8 @@ class PaymentGatewayService
                 'gateway' => $gateway,
                 'callback' => $callbackUrl,
                 'cacheKeyTransaction' => $cacheKey,
-                'transaction' => $transaction
+                'transaction' => $transaction,
+                'payment_type' => $payment_type
             ];
 
             $this->attemptPayment($requestData);

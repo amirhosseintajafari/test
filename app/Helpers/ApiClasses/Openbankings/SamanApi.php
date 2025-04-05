@@ -16,12 +16,13 @@ class SamanApi implements IOpenbanking
             'merchant_id' => $requestData['merchant_id'],
             'amount' => $requestData['amount'],
             'callback' => $requestData['callback'],
+            'payment_type' => $requestData['payment_type'],
         ];
     }
 
     public function sendToOpenBanking($gateway, $requestData)
     {
-        return Http::post("{$gateway['base_url']}", $requestData);
+        return Http::post("{$gateway['base_url']}/" . $requestData['payment_type'], $requestData);
     }
 
     public function getResponseData($response, $requestData)
