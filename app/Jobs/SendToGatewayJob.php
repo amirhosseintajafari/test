@@ -79,8 +79,7 @@ class SendToGatewayJob implements ShouldQueue
             } else {
                 $this->retryIfNeeded($cacheKeyMaxRequestGateway);
             }
-        } catch (Exception $r) {
-            dump($r);
+        } catch (Exception) {
             $logs = $this->handleFailedPayment($this->requestData['transaction']->id, $this->requestData['gateway']['name'], $this->requestData);
             $this->markGatewayAsUnavailable($this->requestData['gateway']['name']);
             Cache::increment("failed_attempts_{$this->requestData['transaction']->id}");
@@ -97,10 +96,7 @@ class SendToGatewayJob implements ShouldQueue
             return $this->openBankingClass->getResponseData($response,$requestData);
 
         } catch (\Exception $e) {
-            return [
-                'error' => true,
-                'message' => 'خطا در اتصال به درگاه: ' . $e->getMessage()
-            ];
+            throw new Exception('خطا در اتصال به درگاه: ' . $e->getMessage());
         }
     }
 
