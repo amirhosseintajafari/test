@@ -9,7 +9,9 @@ use App\Services\PaymentGatewayService;
 
 class PaymentController extends Controller
 {
-    public function __construct(private readonly PaymentGatewayService $paymentGatewayService){}
+    public function __construct(private readonly PaymentGatewayService $paymentGatewayService)
+    {
+    }
 
     public function handlePayment(PaymentRequest $request): \Illuminate\Http\JsonResponse
     {
@@ -24,9 +26,9 @@ class PaymentController extends Controller
             );
 
             return response()->json([
-                    'status' => 'success',
-                    'message' => 'درخواست پرداخت ارسال شد.',
-                ]);
+                'status' => 'success',
+                'message' => 'درخواست پرداخت ارسال شد.',
+            ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
@@ -41,13 +43,14 @@ class PaymentController extends Controller
                 amount: $paymentData->amount,
                 orderId: $paymentData->orderId,
                 callbackUrl: $paymentData->callbackUrl,
-                creatorId: $paymentData->creatorId
+                creatorId: $paymentData->creatorId,
+                shabaNumber: $paymentData->shabaNumber
             );
 
             return response()->json([
-                    'status' => 'success',
-                    'message' => 'درخواست پرداخت ارسال شد.',
-                ]);
+                'status' => 'success',
+                'message' => 'درخواست پرداخت ارسال شد.',
+            ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
@@ -62,13 +65,14 @@ class PaymentController extends Controller
                 amount: $paymentData->amount,
                 orderId: $paymentData->orderId,
                 callbackUrl: $paymentData->callbackUrl,
-                creatorId: $paymentData->creatorId
+                creatorId: $paymentData->creatorId,
+                shabaNumber: $paymentData->shabaNumber
             );
 
             return response()->json([
-                    'status' => 'success',
-                    'message' => 'درخواست پرداخت ارسال شد.',
-                ]);
+                'status' => 'success',
+                'message' => 'درخواست پرداخت ارسال شد.',
+            ]);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }

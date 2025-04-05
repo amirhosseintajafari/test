@@ -36,7 +36,8 @@ class PaymentGatewayService
 
         $this->processPayment($amount, $callbackUrl, $transaction,'normal');
     }
-    public function handlePaymentPaya(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
+
+    public function handlePaymentPaya(int $amount, int $orderId, string $callbackUrl, int $creatorId, string $shabaNumber): void
     {
         if (filled($this->gateways) === false) {
             throw new Exception("تمام درگاه ها به مشکلی خورده است.");
@@ -53,7 +54,8 @@ class PaymentGatewayService
 
         $this->processPayment($amount, $callbackUrl, $transaction,'paya');
     }
-    public function handlePaymentSatna(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
+
+    public function handlePaymentSatna(int $amount, int $orderId, string $callbackUrl, int $creatorId, string $shabaNumber): void
     {
         if (filled($this->gateways) === false) {
             throw new Exception("تمام درگاه ها به مشکلی خورده است.");
