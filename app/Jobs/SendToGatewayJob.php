@@ -33,10 +33,8 @@ class SendToGatewayJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(private $gateway,private int $amount,private string $callbackUrl,private Transaction $transaction,private string $cacheKey){
+    public function __construct(private $gateway,private int $amount,private string $callbackUrl,private Transaction $transaction,private readonly string $cacheKeyTransaction){
         $this->totalMaxRequest = array_sum(array_column(config('payment_gateways.gateways'), 'max_request'));
-        $this->updateCacheMaxRequestCount($cacheKey,$this->totalMaxRequest);
-
     }
 
     /**
@@ -44,18 +42,18 @@ class SendToGatewayJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $this->updateCacheMaxRequestCount($this->cacheKeyTransaction,$this->totalMaxRequest);
         $this->initRepositoriesAndServices();
 
         if ($this->shouldSkip()) {
             return;
         }
 
-        $cacheKey = $this->buildCacheKey();
-
+        $cacheKeyMaxRequestGateway = $this->buildCacheKey();
         try {
             $requestData = $this->buildRequestData($this->gateway, $this->amount, $this->callbackUrl);
             $response = $this->sendToGateway($this->gateway, $requestData);
-            $this->updateCacheRequestCount($cacheKey);
+            $this->updateCacheRequestCount($cacheKeyMaxRequestGateway);
 
             $status = StatusEnum::getPaymentStatus($response);
 
@@ -66,14 +64,17 @@ class SendToGatewayJob implements ShouldQueue
             $logs = $this->buildLogEntry($this->transaction->id, $this->gateway['name'], $status, $response, $requestData);
 
             $this->updateTransaction($status, $response);
-            if ($this->checkCacheMaxRequestCount($this->cacheKey) || $status === StatusEnum::PAID->value){
+            if ($this->checkCacheMaxRequestCount($this->cacheKeyTransaction)){
                 (new JobHandler())->sendResponse( $this->callbackUrl, $this->transaction);
+                return;
             }
 
             if ($status === StatusEnum::PAID->value) {
-                $this->finalizeSuccessfulPayment($this->cacheKey, $this->gateway['name'], $response, $this->buildRequestData($this->gateway, $this->amount, $this->callbackUrl));
+                (new JobHandler())->sendResponse( $this->callbackUrl, $this->transaction);
+                $this->finalizeSuccessfulPayment($this->cacheKeyTransaction, $this->gateway['name'], $response, $this->buildRequestData($this->gateway, $this->amount, $this->callbackUrl));
+                return;
             } else {
-                $this->retryIfNeeded($cacheKey);
+                $this->retryIfNeeded($cacheKeyMaxRequestGateway);
             }
         } catch (Exception) {
             $logs = $this->handleFailedPayment($this->transaction->id, $this->gateway['name'], $requestData);
@@ -228,7 +229,7 @@ class SendToGatewayJob implements ShouldQueue
     private function retryIfNeeded(string $cacheKey): void
     {
         if (Cache::get($cacheKey) < $this->gateway['max_request']) {
-            (new JobHandler())->sendToGateway($this->gateway, $this->amount, $this->callbackUrl, $this->transaction, $cacheKey);
+            (new JobHandler())->sendToGateway($this->gateway, $this->amount, $this->callbackUrl, $this->transaction, $this->cacheKeyTransaction);
         }
     }
 
