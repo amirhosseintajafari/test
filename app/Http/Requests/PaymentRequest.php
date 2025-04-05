@@ -26,9 +26,9 @@ class PaymentRequest extends FormRequest
     {
         $creatorId = 1;
         return [
-            'amount' => ['required','numeric','min:1000'],
-            'callback_url' => ['required','url'],
-            'order_id' => ['required','numeric',Rule::unique('transactions')->where(function ($query) use ($creatorId) {
+            'amount' => ['required', 'numeric', 'min:1000'],
+            'callback_url' => ['required', 'url'],
+            'order_id' => ['required', 'numeric', Rule::unique('transactions')->where(function ($query) use ($creatorId) {
                 return $query->where('creator_id', $creatorId);
             })]
         ];

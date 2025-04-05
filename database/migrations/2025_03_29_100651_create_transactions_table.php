@@ -17,12 +17,13 @@ return new class extends Migration
             $table->enum('status',['send_to_bank','paid','failed','canceled','reversed','pending','blocked','under_review'])->default('send_to_bank');
             $table->string('gateway_name')->nullable();
             $table->unsignedSmallInteger('response_code')->nullable();
-            $table->unsignedInteger('order_id')->unique();
+            $table->unsignedInteger('order_id');
             $table->unsignedInteger('transaction_code')->nullable()->unique();
             $table->string('description')->nullable();
             $table->unsignedInteger('creator_id');
             $table->timestamps();
             $table->softDeletes();
+            $table->unique(['order_id','creator_id']);
         });
     }
 
