@@ -21,12 +21,12 @@ class BehPardakhtApi implements IOpenbanking
         ];
     }
 
-    public function sendToOpenBanking($gateway, $requestData)
+    public function sendToOpenBanking($gateway, $requestData): \Illuminate\Http\Client\Response
     {
         return Http::post("{$gateway['base_url']}/" . $requestData['payment_type'], $requestData);
     }
 
-    public function getResponseData($response, $requestData)
+    public function getResponseData($response, $requestData): array
     {
         if ($response->successful()) {
             return [
@@ -35,6 +35,43 @@ class BehPardakhtApi implements IOpenbanking
                 'transaction_code' => $response->json('transaction_code'),
                 'redirect_url' => $response->json('redirect_url'),
                 'response_code' => $response->json('response_code'),
+            ];
+        }
+        return [
+            'status' => StatusEnum::FAILED->value,
+            'response_code' => ResponseCodeEnum::INTERNAL_ERROR->value,
+            'response_data' => null,
+            'request_data' => json_encode($requestData),
+            'updated_at' => json_encode(now()),
+            'created_at' => json_encode(now()),
+        ];
+    }
+
+    public function convertCardNumberToShabaNumber($requestData): \Illuminate\Http\Client\Response
+    {
+        return Http::post("{$requestData['gateway']['base_url']}/convert-card-number-to-shaba-number", $requestData);
+    }
+
+    public function buildRequestDataForConvertCardNumberToShabaNumber($requestData): array
+    {
+        return [
+            'merchant_id' => $requestData['merchant_id'],
+            'username' => $requestData['username'],
+            'password' => $requestData['password'],
+            'cardNumber' => $requestData['cardNumber'],
+            'gateway' => $requestData['gateway'],
+            'callback' => $requestData['callback'],
+        ];
+    }
+
+    public function getResponseCardNumberToShabaNumber($response ,$requestData): array
+    {
+        if ($response->successful()) {
+            return [
+                'status' => $response->json('status'),
+                'message' => $response->json('message'),
+                'shabaNumber' => $response->json('shabaNumber'),
+                'redirect_url' => $response->json('redirect_url'),
             ];
         }
         return [

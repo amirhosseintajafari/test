@@ -12,7 +12,10 @@ Route::get('/user', function (Request $request) {
 Route::post('/payment', [PaymentController::class, 'handlePayment']);
 Route::post('/payment/satna', [PaymentController::class, 'handlePaymentSatna']);
 Route::post('/payment/paya', [PaymentController::class, 'handlePaymentPaya']);
+Route::post('payment/convert-card-number-to-shaba-number', [PaymentController::class, 'convertCardNumberToShabaNumber']);
+
 
 Route::post('mock-payment/normal', [MockPaymentController::class, 'handleMockPayment']);
 Route::post('mock-payment/satna', [MockPaymentController::class, 'handleMockPaymentSatna']);
 Route::post('mock-payment/paya', [MockPaymentController::class, 'handleMockPaymentPaya']);
+Route::post('mock-payment/convert-card-number-to-shaba-number', [MockPaymentController::class, 'convertCardNumberToShabaNumber']);

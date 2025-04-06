@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DataTransferObjects\ConvertCardNumberToShabaNumberData;
 use App\Helpers\JobHandler;
 use App\Models\Repositories\Transactions\TransactionRepository;
 use App\Models\Transaction;
@@ -131,5 +132,35 @@ class PaymentGatewayService
     public function updateTransaction(Transaction $transaction): Transaction
     {
         return $this->transactionRepository->update($transaction);
+    }
+
+    public function handleConvertCardNumberToShabaNumber($cardNumber,$callbackUrl)
+    {
+        foreach ($this->gateways as $gateway) {
+            $requestData = [
+                'merchant_id' => $gateway['merchant_id'] ?? null,
+                'username' => $gateway['username'] ?? null,
+                'password' => $gateway['password'] ?? null,
+                'gateway' => $gateway,
+                'cardNumber' => $cardNumber,
+                'callback' => $callbackUrl,
+            ];
+
+            try {
+                $openBankingClass = new $requestData['gateway']['class']();
+                $requestData = $openBankingClass->buildRequestDataForConvertCardNumberToShabaNumber($requestData);
+                $response = $openBankingClass->convertCardNumberToShabaNumber($requestData);
+                $responseData = $openBankingClass->getResponseCardNumberToShabaNumber($response,$requestData);
+                if ($responseData['status'] === 'success'){
+                    return $responseData;
+                }else{
+
+                }
+            }catch(Exception){
+
+            }
+
+
+        }
     }
 }

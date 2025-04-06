@@ -43,6 +43,7 @@ class MockPaymentController extends Controller
             ]);
         }
     }
+
     public function handleMockPaymentPaya(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
@@ -78,6 +79,7 @@ class MockPaymentController extends Controller
             ]);
         }
     }
+
     public function handleMockPaymentSatna(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
@@ -114,4 +116,17 @@ class MockPaymentController extends Controller
         }
     }
 
+    public function convertCardNumberToShabaNumber(Request $request)
+    {
+        $request->validate([
+           'cardNumber' => 'required'
+        ]);
+        $shabaNumber = 'IR'.$request->cardNumber.rand(100000,999999);
+
+        return response()->json([
+            'status' => 'failed',
+            'shabaNumber' => $shabaNumber,
+            'redirect_url' => $request->input('callback') . '?shabaNumber=' . $shabaNumber . '&status=success',
+        ]);
+    }
 }

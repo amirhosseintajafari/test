@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\ConvertCardNumberToShabaNumberData;
 use App\DataTransferObjects\PaymentData;
 use App\DataTransferObjects\PaymentWithSabaData;
+use App\Http\Requests\ConvertCardNumberToShabaNumberRequest;
 use App\Http\Requests\PaymentRequest;
 use App\Services\PaymentGatewayService;
 
@@ -74,6 +76,27 @@ class PaymentController extends Controller
                 'message' => 'درخواست پرداخت ارسال شد.',
             ]);
         } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function ConvertCardNumberToShabaNumber(ConvertCardNumberToShabaNumberRequest $request)
+    {
+        try {
+            $convertData = ConvertCardNumberToShabaNumberData::fromRequest($request);
+
+            $response = $this->paymentGatewayService->handleConvertCardNumberToShabaNumber(
+                cardNumber: $convertData->cardNumber,
+                callbackUrl: $convertData->callbackUrl,
+            );
+            if ($response['status'] == 'success') {
+                return response()->json([
+                    'status' => 'success',
+                    'shabaNumber' => $response['shabaNumber'],
+                    'message' => '',
+                ]);
+            }
+        }  catch (\Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
