@@ -3,6 +3,7 @@
 namespace App\Helpers\ApiClasses\Openbankings;
 
 use App\Helpers\ApiClasses\Interfaces\IOpenbanking;
+use App\Models\Enums\PaymentTypeEnum;
 use App\Models\Enums\ResponseCodeEnum;
 use App\Models\Enums\StatusEnum;
 use Illuminate\Http\Client\Response;
@@ -13,14 +14,14 @@ class BehPardakhtApi implements IOpenbanking
 
     public function buildRequestData($requestData): array
     {
-        if ($requestData['payment_type'] === 'paya') {
+        if ($requestData['payment_type'] === PaymentTypeEnum::PAYA->value) {
             return [
                 'merchant_id' => $requestData['merchant_id'],
                 'amount' => $requestData['amount'],
                 'callback' => $requestData['callback'],
                 'payment_type' => $requestData['payment_type'],
             ];
-        } elseif ($requestData['payment_type'] === 'satna') {
+        } elseif ($requestData['payment_type'] === PaymentTypeEnum::SATNA->value) {
             return [
                 'merchant_id' => $requestData['merchant_id'],
                 'amount' => $requestData['amount'],
@@ -38,9 +39,9 @@ class BehPardakhtApi implements IOpenbanking
 
     public function sendToOpenBanking($gateway, $requestData): Response
     {
-        if ($requestData['payment_type'] === 'paya') {
+        if ($requestData['payment_type'] === PaymentTypeEnum::PAYA->value) {
             return Http::post("{$gateway['base_url']}/" . $requestData['payment_type'], $requestData);
-        } elseif ($requestData['payment_type'] === 'satna') {
+        } elseif ($requestData['payment_type'] === PaymentTypeEnum::SATNA->value) {
             return Http::post("{$gateway['base_url']}/" . $requestData['payment_type'], $requestData);
         } else
             return Http::post("{$gateway['base_url']}/" . $requestData['payment_type'], $requestData);
@@ -48,7 +49,7 @@ class BehPardakhtApi implements IOpenbanking
 
     public function getResponseData($response, $requestData): array
     {
-        if ($requestData['payment_type'] === 'paya') {
+        if ($requestData['payment_type'] === PaymentTypeEnum::PAYA->value) {
             if ($response->successful()) {
                 return [
                     'status' => $response->json('status'),
@@ -66,7 +67,7 @@ class BehPardakhtApi implements IOpenbanking
                 'updated_at' => json_encode(now()),
                 'created_at' => json_encode(now()),
             ];
-        } elseif ($requestData['payment_type'] === 'satna') {
+        } elseif ($requestData['payment_type'] === PaymentTypeEnum::SATNA->value) {
             if ($response->successful()) {
                 return [
                     'status' => $response->json('status'),

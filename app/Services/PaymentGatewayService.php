@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Helpers\JobHandler;
+use App\Models\Enums\PaymentTypeEnum;
 use App\Models\Enums\ResponseCodeEnum;
 use App\Models\Enums\StatusEnum;
 use App\Models\Repositories\Transactions\TransactionRepository;
@@ -36,7 +37,7 @@ class PaymentGatewayService
 
         $transaction = $this->lockTransactionForUpdate($transaction);
 
-        $this->processPayment($amount, $callbackUrl, $transaction, 'normal');
+        $this->processPayment($amount, $callbackUrl, $transaction, PaymentTypeEnum::NORMAL->value);
     }
 
     public function handlePaymentPaya(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
@@ -54,7 +55,7 @@ class PaymentGatewayService
 
         $transaction = $this->lockTransactionForUpdate($transaction);
 
-        $this->processPayment($amount, $callbackUrl, $transaction, 'paya');
+        $this->processPayment($amount, $callbackUrl, $transaction, PaymentTypeEnum::PAYA->value);
     }
 
     public function handlePaymentSatna(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
@@ -72,7 +73,7 @@ class PaymentGatewayService
 
         $transaction = $this->lockTransactionForUpdate($transaction);
 
-        $this->processPayment($amount, $callbackUrl, $transaction, 'satna');
+        $this->processPayment($amount, $callbackUrl, $transaction, PaymentTypeEnum::SATNA->value);
     }
 
     public function processPayment(int $amount, string $callbackUrl, Transaction $transaction, string $payment_type)
