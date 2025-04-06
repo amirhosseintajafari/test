@@ -124,7 +124,7 @@ class MockPaymentController extends Controller
         $shabaNumber = 'IR'.$request->cardNumber.rand(100000,999999);
 
         return response()->json([
-            'status' => 'failed',
+            'status' => 'success',
             'shabaNumber' => $shabaNumber,
             'redirect_url' => $request->input('callback') . '?shabaNumber=' . $shabaNumber . '&status=success',
         ]);

@@ -46,7 +46,6 @@ class PaymentController extends Controller
                 orderId: $paymentData->orderId,
                 callbackUrl: $paymentData->callbackUrl,
                 creatorId: $paymentData->creatorId,
-                shabaNumber: $paymentData->shabaNumber
             );
 
             return response()->json([
@@ -68,7 +67,6 @@ class PaymentController extends Controller
                 orderId: $paymentData->orderId,
                 callbackUrl: $paymentData->callbackUrl,
                 creatorId: $paymentData->creatorId,
-                shabaNumber: $paymentData->shabaNumber
             );
 
             return response()->json([
@@ -93,6 +91,11 @@ class PaymentController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'shabaNumber' => $response['shabaNumber'],
+                    'message' => '',
+                ]);
+            }else{
+                return response()->json([
+                    'status' => 'failed',
                     'message' => '',
                 ]);
             }

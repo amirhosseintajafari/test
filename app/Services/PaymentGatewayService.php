@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\DataTransferObjects\ConvertCardNumberToShabaNumberData;
 use App\Helpers\JobHandler;
+use App\Models\Enums\ResponseCodeEnum;
+use App\Models\Enums\StatusEnum;
 use App\Models\Repositories\Transactions\TransactionRepository;
 use App\Models\Transaction;
 use Exception;
@@ -35,10 +36,10 @@ class PaymentGatewayService
 
         $transaction = $this->lockTransactionForUpdate($transaction);
 
-        $this->processPayment($amount, $callbackUrl, $transaction,'normal');
+        $this->processPayment($amount, $callbackUrl, $transaction, 'normal');
     }
 
-    public function handlePaymentPaya(int $amount, int $orderId, string $callbackUrl, int $creatorId, string $shabaNumber): void
+    public function handlePaymentPaya(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
     {
         if (filled($this->gateways) === false) {
             throw new Exception("تمام درگاه ها به مشکلی خورده است.");
@@ -53,10 +54,10 @@ class PaymentGatewayService
 
         $transaction = $this->lockTransactionForUpdate($transaction);
 
-        $this->processPayment($amount, $callbackUrl, $transaction,'paya');
+        $this->processPayment($amount, $callbackUrl, $transaction, 'paya');
     }
 
-    public function handlePaymentSatna(int $amount, int $orderId, string $callbackUrl, int $creatorId, string $shabaNumber): void
+    public function handlePaymentSatna(int $amount, int $orderId, string $callbackUrl, int $creatorId): void
     {
         if (filled($this->gateways) === false) {
             throw new Exception("تمام درگاه ها به مشکلی خورده است.");
@@ -71,10 +72,10 @@ class PaymentGatewayService
 
         $transaction = $this->lockTransactionForUpdate($transaction);
 
-        $this->processPayment($amount, $callbackUrl, $transaction,'satna');
+        $this->processPayment($amount, $callbackUrl, $transaction, 'satna');
     }
 
-    public function processPayment(int $amount, string $callbackUrl, Transaction $transaction,String $payment_type)
+    public function processPayment(int $amount, string $callbackUrl, Transaction $transaction, string $payment_type)
     {
 
         $cacheKey = "payment_status_$transaction->id";
@@ -134,9 +135,30 @@ class PaymentGatewayService
         return $this->transactionRepository->update($transaction);
     }
 
-    public function handleConvertCardNumberToShabaNumber($cardNumber,$callbackUrl)
+    public function handleConvertCardNumberToShabaNumber($cardNumber, $callbackUrl)
     {
+        if (filled($this->gateways) === false) {
+            throw new Exception("تمام درگاه ها به مشکلی خورده است.");
+        }
+
+        $totalMaxRequest = array_sum(array_column(config('payment_gateways.gateways'), 'max_request'));
+
         foreach ($this->gateways as $gateway) {
+            if (Cache::has('max_request' . $cardNumber) && Cache::get('max_request' . $cardNumber) === $totalMaxRequest) {
+                return [
+                    'status' => StatusEnum::FAILED->value,
+                    'response_code' => ResponseCodeEnum::INTERNAL_ERROR->value,
+                    'response_data' => null,
+                    'request_data' => json_encode($requestData),
+                    'updated_at' => json_encode(now()),
+                    'created_at' => json_encode(now()),
+                ];
+            }
+            if (Cache::has('max_request' . $cardNumber)) {
+                Cache::increment('max_request' . $cardNumber);
+            } else {
+                Cache::put('max_request' . $cardNumber, $totalMaxRequest, now()->addMinute());
+            }
             $requestData = [
                 'merchant_id' => $gateway['merchant_id'] ?? null,
                 'username' => $gateway['username'] ?? null,
@@ -145,22 +167,20 @@ class PaymentGatewayService
                 'cardNumber' => $cardNumber,
                 'callback' => $callbackUrl,
             ];
-
-            try {
-                $openBankingClass = new $requestData['gateway']['class']();
-                $requestData = $openBankingClass->buildRequestDataForConvertCardNumberToShabaNumber($requestData);
-                $response = $openBankingClass->convertCardNumberToShabaNumber($requestData);
-                $responseData = $openBankingClass->getResponseCardNumberToShabaNumber($response,$requestData);
-                if ($responseData['status'] === 'success'){
-                    return $responseData;
-                }else{
+            for ($i = 0; $i < $gateway['max_request']; $i++) {
+                try {
+                    $openBankingClass = new $requestData['gateway']['class']();
+                    $requestData = $openBankingClass->buildRequestDataForConvertCardNumberToShabaNumber($requestData);
+                    $response = $openBankingClass->convertCardNumberToShabaNumber($requestData);
+                    $responseData = $openBankingClass->getResponseCardNumberToShabaNumber($response, $requestData);
+                    if ($responseData['status'] === 'success') {
+                        return $responseData;
+                    }
+                } catch (Exception) {
 
                 }
-            }catch(Exception){
-
             }
-
-
         }
+
     }
 }

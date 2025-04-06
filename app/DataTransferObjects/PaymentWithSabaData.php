@@ -11,7 +11,6 @@ class PaymentWithSabaData
         public int|string $orderId,
         public string $callbackUrl,
         public int $creatorId,
-        public string $shabaNumber
     ) {
     }
 
@@ -22,7 +21,6 @@ class PaymentWithSabaData
             orderId: $request->input('order_id'),
             callbackUrl: $request->input('callback_url'),
             creatorId: auth()->id() ?? 1,
-            shabaNumber: $request->input('shabaNumber'),
         );
     }
 }
