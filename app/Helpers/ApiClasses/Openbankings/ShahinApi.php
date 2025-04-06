@@ -21,7 +21,7 @@ class ShahinApi implements IOpenbanking
                 'callback' => $requestData['callback'],
                 'payment_type' => $requestData['payment_type'],
             ];
-        } elseif ($requestData['payment_type'] === PaymentTypeEnum::SATNA->value->value) {
+        } elseif ($requestData['payment_type'] === PaymentTypeEnum::SATNA->value) {
             return [
                 'merchant_id' => $requestData['merchant_id'],
                 'amount' => $requestData['amount'],
