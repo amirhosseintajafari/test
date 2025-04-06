@@ -3,6 +3,7 @@
 namespace App\Helpers\ApiClasses\Openbankings;
 
 use App\Helpers\ApiClasses\Interfaces\IOpenbanking;
+use App\Models\Enums\PaymentTypeEnum;
 use App\Models\Enums\ResponseCodeEnum;
 use App\Models\Enums\StatusEnum;
 use Illuminate\Http\Client\Response;
