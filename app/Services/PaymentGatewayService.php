@@ -144,10 +144,17 @@ class PaymentGatewayService
         $totalMaxRequest = array_sum(array_column(config('payment_gateways.gateways'), 'max_request'));
 
         foreach ($this->gateways as $gateway) {
+            $requestData = [
+                'merchant_id' => $gateway['merchant_id'] ?? null,
+                'username' => $gateway['username'] ?? null,
+                'password' => $gateway['password'] ?? null,
+                'gateway' => $gateway,
+                'cardNumber' => $cardNumber,
+                'callback' => $callbackUrl,
+            ];
             if (Cache::has('max_request' . $cardNumber) && Cache::get('max_request' . $cardNumber) === $totalMaxRequest) {
                 return [
                     'status' => StatusEnum::FAILED->value,
-                    'response_code' => ResponseCodeEnum::INTERNAL_ERROR->value,
                     'response_data' => null,
                     'request_data' => json_encode($requestData),
                     'updated_at' => json_encode(now()),
@@ -157,16 +164,9 @@ class PaymentGatewayService
             if (Cache::has('max_request' . $cardNumber)) {
                 Cache::increment('max_request' . $cardNumber);
             } else {
-                Cache::put('max_request' . $cardNumber, $totalMaxRequest, now()->addMinute());
+                Cache::put('max_request' . $cardNumber, 0, now()->addMinute());
             }
-            $requestData = [
-                'merchant_id' => $gateway['merchant_id'] ?? null,
-                'username' => $gateway['username'] ?? null,
-                'password' => $gateway['password'] ?? null,
-                'gateway' => $gateway,
-                'cardNumber' => $cardNumber,
-                'callback' => $callbackUrl,
-            ];
+
             for ($i = 0; $i < $gateway['max_request']; $i++) {
                 try {
                     $openBankingClass = new $requestData['gateway']['class']();
@@ -176,8 +176,8 @@ class PaymentGatewayService
                     if ($responseData['status'] === 'success') {
                         return $responseData;
                     }
-                } catch (Exception) {
 
+                } catch (Exception) {
                 }
             }
         }

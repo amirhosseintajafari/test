@@ -87,7 +87,7 @@ class PaymentController extends Controller
                 cardNumber: $convertData->cardNumber,
                 callbackUrl: $convertData->callbackUrl,
             );
-            if ($response['status'] == 'success') {
+            if (filled($response) && $response['status'] == 'success') {
                 return response()->json([
                     'status' => 'success',
                     'shabaNumber' => $response['shabaNumber'],
