@@ -10,7 +10,7 @@ interface IOpenbanking
 
     public function sendToOpenBanking($gateway, $requestData): Response;
 
-    public function getResponseData($response, $requestData);
+    public function getResponseData($response, $requestData): array;
 
     public function buildRequestDataForConvertCardNumberToShabaNumber($requestData): array;
 

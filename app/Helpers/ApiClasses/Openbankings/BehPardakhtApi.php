@@ -106,7 +106,7 @@ class BehPardakhtApi implements IOpenbanking
         }
     }
 
-    public function convertCardNumberToShabaNumber($requestData): \Illuminate\Http\Client\Response
+    public function convertCardNumberToShabaNumber($requestData): Response
     {
         return Http::post("{$requestData['gateway']['base_url']}/convert-card-number-to-shaba-number", $requestData);
     }

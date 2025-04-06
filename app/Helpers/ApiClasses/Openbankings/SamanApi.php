@@ -47,7 +47,7 @@ class SamanApi implements IOpenbanking
             return Http::post("{$gateway['base_url']}/" . $requestData['payment_type'], $requestData);
     }
 
-    public function getResponseData($response, $requestData)
+    public function getResponseData($response, $requestData): array
     {
         if ($requestData['payment_type'] === PaymentTypeEnum::PAYA->value) {
             if ($response->successful()) {
