@@ -8,6 +8,7 @@ use App\DataTransferObjects\PaymentWithSabaData;
 use App\Http\Requests\ConvertCardNumberToShabaNumberRequest;
 use App\Http\Requests\PaymentRequest;
 use App\Services\PaymentGatewayService;
+use Illuminate\Http\JsonResponse;
 
 class PaymentController extends Controller
 {
@@ -15,7 +16,7 @@ class PaymentController extends Controller
     {
     }
 
-    public function handlePayment(PaymentRequest $request): \Illuminate\Http\JsonResponse
+    public function handlePayment(PaymentRequest $request): JsonResponse
     {
         try {
             $paymentData = PaymentData::fromRequest($request);
@@ -36,7 +37,7 @@ class PaymentController extends Controller
         }
     }
 
-    public function handlePaymentSatna(PaymentRequest $request): \Illuminate\Http\JsonResponse
+    public function handlePaymentSatna(PaymentRequest $request): JsonResponse
     {
         try {
             $paymentData = PaymentWithSabaData::fromRequest($request);
@@ -57,7 +58,7 @@ class PaymentController extends Controller
         }
     }
 
-    public function handlePaymentPaya(PaymentRequest $request): \Illuminate\Http\JsonResponse
+    public function handlePaymentPaya(PaymentRequest $request): JsonResponse
     {
         try {
             $paymentData = PaymentWithSabaData::fromRequest($request);
@@ -78,7 +79,7 @@ class PaymentController extends Controller
         }
     }
 
-    public function ConvertCardNumberToShabaNumber(ConvertCardNumberToShabaNumberRequest $request)
+    public function ConvertCardNumberToShabaNumber(ConvertCardNumberToShabaNumberRequest $request): JsonResponse
     {
         try {
             $convertData = ConvertCardNumberToShabaNumberData::fromRequest($request);
